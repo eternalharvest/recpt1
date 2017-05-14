@@ -526,7 +526,8 @@ show_options(void)
     fprintf(stderr, "--udp:               Turn on udp broadcasting\n");
     fprintf(stderr, "  --addr hostname:   Hostname or address to connect\n");
     fprintf(stderr, "  --port portnumber: Port number to connect\n");
-    fprintf(stderr, "--http portnumber:   Turn on http broadcasting (run as a daemon)\n");
+    fprintf(stderr, "--http portnumber:   Turn on http broadcasting\n");
+    fprintf(stderr, "--foreground:        Do not daemonize even if http broadcast is enabled\n");
     fprintf(stderr, "--device devicefile: Specify devicefile to use\n");
     fprintf(stderr, "--lnb voltage:       Specify LNB voltage (0, 11, 15)\n");
     fprintf(stderr, "--sid SID1,SID2,...: Specify SID number in CSV format (101,102,...)\n");
@@ -644,6 +645,7 @@ main(int argc, char **argv)
         { "addr",      1, NULL, 'a'},
         { "port",      1, NULL, 'p'},
         { "http",      1, NULL, 'H'},
+        { "foreground",0, NULL, 'F'},
         { "device",    1, NULL, 'd'},
         { "help",      0, NULL, 'h'},
         { "version",   0, NULL, 'v'},
@@ -655,6 +657,7 @@ main(int argc, char **argv)
     boolean use_b25 = FALSE;
     boolean use_udp = FALSE;
     boolean use_http = FALSE;
+    boolean foreground = FALSE;
     boolean fileless = FALSE;
     boolean use_stdout = FALSE;
     boolean use_splitter = FALSE;
@@ -670,7 +673,7 @@ main(int argc, char **argv)
     unsigned int len;
     char *channel = NULL;
 
-    while((result = getopt_long(argc, argv, "br:smn:ua:H:p:d:hvli:",
+    while((result = getopt_long(argc, argv, "br:smn:ua:H:p:Fd:hvli:",
                                 long_options, &option_index)) != -1) {
         switch(result) {
         case 'b':
@@ -693,7 +696,10 @@ main(int argc, char **argv)
         case 'H':
             use_http = TRUE;
             port_http = atoi(optarg);
-            fprintf(stderr, "creating a http daemon\n");
+            fprintf(stderr, "enable http broadcasting\n");
+            break;
+	case 'F':
+            foreground = TRUE;
             break;
         case 'h':
             fprintf(stderr, "\n");
@@ -755,11 +761,13 @@ main(int argc, char **argv)
     }
 
     if(use_http){    // http-server add-
-        fprintf(stderr, "run as a daemon..\n");
-        if(daemon(1,1)){
-            perror("failed to start");
-            return 1;
-        }
+	if (!foreground){
+            fprintf(stderr, "run as a daemon..\n");
+            if(daemon(1,1)){
+                perror("failed to start");
+                return 1;
+            }
+	}
         fprintf(stderr, "pid = %d\n", getpid());
 
         struct sockaddr_in sin;
