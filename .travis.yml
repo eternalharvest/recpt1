@@ -1,0 +1,34 @@
+language: c
+sudo: false
+
+matrix:
+  include:
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - george-edison55-precise-backports
+          packages:
+            - gcc
+            - autoconf
+            - automake
+  
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - george-edison55-precise-backports
+          packages:
+            - clang
+            - autoconf
+            - automake
+            - make
+
+script:
+  - cd recpt1
+  - ./autogen.sh
+  - ./configure
+  - make
+  - ./recpt1 --help
